@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import os
 import json
 import jieba
+import pandas as pd
+import glob
 
 
 userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36 Edg/86.0.622.51'
@@ -88,7 +90,8 @@ for i in range(0,10) :
         allcontent += '薪資: %s\n' % (salary)
         allcontent += '連結: %s\n' % (articleurl)
         allcontent += '\n'
-        company += '(%s)' %(num)
+        # company += '(%s)' %(num)
+        company += '%s' %title
         print(company)
         print(articleurl)
 
@@ -120,9 +123,30 @@ for i in range(0,10) :
     print('='*20)
     h += 1
     print('=====%s======' %h)
+
+
     #Find new url
     newUrl = 'https://www.104.com.tw/jobs/search/?keyword=' + str(n) + '&page=' + str(h)
     # newUrl = 'https://www.104.com.tw/jobs/search/?keyword=' + '資料工程師' + '&page=' + str(h)
     # print(newUrl)
     #print(newurl)
     url = newUrl
+
+glob.glob('./資料工程師/*.txt')
+
+rowData = list()
+for article in glob.glob('./資料工程師/*.txt'):
+    with open(article, 'r', encoding='utf-8') as f:
+        tmplist = f.read().split('\n')[0:-1]
+        rowData.append(tmplist)
+
+columns = [r.split(':')[0] for r in rowData[0]]
+df = pd.DataFrame(data=rowData, columns=columns)
+
+def column_filter(s):
+    return s.split(':')[-1]
+df3 = df.copy()
+for c in df3:
+    df3[c] = df3[c].apply(lambda x: x.split(': ')[-1])
+
+df3.to_csv('./104銀行%s.csv' %n, index=False, encoding='utf-8-sig')
